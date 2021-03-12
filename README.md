@@ -37,34 +37,9 @@ It would be beneficial to have an external source of database docs that is easie
 * Keeping docs up to date automatically. The team doesn’t have to maintain documentation that is separate from postgres/code
 * Only requires the service to run when generating the docs, not when viewing them
 
-## Goal
-An example project that: 
-* Starts a Postgres database
-* Runs migrations/creates tables
-* Runs the auto doc script
-* Saves the result to an md-file
-* Reference the file in a readme
-
-## Suggested implementation
-
-#### Inspiration
-
- Previous work: https://github.com/cbbrowne/autodoc
- 
- DX: https://github.com/adelsz/pgtyped 
- 
- * A node.js cli
- * An associated config.json file that specifies how to access the database (or added as params)
- * A way to set the cli to “watch” a directory, rerunning the script every time a file changes
- 
-#### Outputs the documentation in a human readable format, e.g
-
-* png file with an ER diagram
-* markdown
-* Maybe just a json format that another plugin can use to generate the docs?
 
 
-## Division of work:
+## Extensions
 * CLI / runner - the user facing interface that can be used to run the script
 * Generator script
 * Visualization script
@@ -73,6 +48,14 @@ An example project that:
 * Performance, currently a log of queries
 * Watch mode to run the script automatically when a directory changes. E.g put watch mode on the migrations directory and re run.
 * Tests
+
+#### How to
+Create an example project that: 
+* Starts a Postgres database
+* Runs migrations/creates tables
+* Runs the auto doc script
+* Saves the result to an md-file
+* Reference the file in a readme
 
 ## Usage example
 
