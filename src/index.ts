@@ -10,12 +10,10 @@ const parseArguments = () => {
   const [_, __, ...args] = process.argv
   return args
     .map((arg) => {
-      if (arg.startsWith('--')) {
-        const [flag, value] = arg.split('=')
-        const withoutDashes = flag.slice(2)
-        return { [withoutDashes]: value }
-      }
-      return {}
+      if (!arg.startsWith('--')) return {}
+      const [flag, value] = arg.split('=')
+      const withoutDashes = flag.slice(2)
+      return { [withoutDashes]: value }
     })
     .reduce((acc, next) => ({ ...acc, ...next }), {})
 }
@@ -50,7 +48,7 @@ const getDbConfig = async (configPath: string) => {
 const main = async () => {
   const rawArguments = parseArguments()
   if (!rawArguments.config || !rawArguments.output) {
-    console.log('failed, "--config" and "--output" required')
+    console.log('failed, "--config={path}" and "--output={path}" required')
     return
   }
 
@@ -59,7 +57,8 @@ const main = async () => {
     const database = await createDatabase(dbConfig)
     const repository = createRepository(database.query)
     const schema = await getSchema(repository)
-    await writeFile(rawArguments.output, JSON.stringify(schema))
+    await database.disconnect()
+    await writeFile(rawArguments.output, format(schema))
   } catch (e) {
     console.log('postgres doc failed', e)
   }
