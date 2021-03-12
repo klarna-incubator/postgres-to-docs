@@ -1,0 +1,10 @@
+version: '3'
+services:
+  postgres:
+    image: r-docker-docker-hub.artifactory.klarna.net/postgres:11.6
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres-to-docs
+      POSTGRES_PASSWORD: postgres-to-docs
+      POSTGRES_DB: postgres-to-docs

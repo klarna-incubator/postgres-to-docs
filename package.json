@@ -1,0 +1,25 @@
+{
+  "name": "postgresql-to-docs",
+  "version": "1.0.0",
+  "description": "> Short blurb about what your project does.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "ts-node ./src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/klarna-incubator/postgresql-to-docs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/klarna-incubator/postgresql-to-docs/issues"
+  },
+  "homepage": "https://github.com/klarna-incubator/postgresql-to-docs#readme",
+  "dependencies": {
+    "pg": "^8.5.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
+  }
+}
