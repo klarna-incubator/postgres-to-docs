@@ -59,7 +59,17 @@ Create an example project that:
 
 ## Usage example
 
-TODO
+* Configure ***host***, ***port***, ***user***, ***pasword*** and ***database*** in configuration.json
+
+```
+{
+  "host": "localhost",
+  "port": 5432,
+  "user": "user",
+  "password": "password",
+  "database": "postgres-auto-docs"
+} 
+```
 
 _For more examples and usage, please refer to the [Docs](TODO)._
 
