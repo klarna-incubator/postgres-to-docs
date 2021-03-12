@@ -11,10 +11,14 @@ type TableDescription = {
 }
 
 export const format = (schema: Schema) => {
-  return descriptionToMarkdownJson(schema.tables)
+  const tablesDocs: any = generateTablesMarkdown(schema.tables)
+  let documentation = [
+    tablesDocs,
+  ].flat()
+  return json2md(documentation)
 }
 
-const descriptionToMarkdownJson = (tables: TableDescription[]) => {
+const generateTablesMarkdown = (tables: TableDescription[]) => {
   const tablesMd = tables.map((x) => generateTableDescription(x))
   let arr: any[] = []
   tablesMd.forEach((element) => {
@@ -22,7 +26,7 @@ const descriptionToMarkdownJson = (tables: TableDescription[]) => {
       arr.push(e)
     })
   })
-  return json2md([{ h2: 'Tables' }].concat(arr))
+  return [{ h2: 'Tables' }].concat(arr)
 }
 
 const generateTableDescription = (tableDescription: TableDescription) => {
