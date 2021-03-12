@@ -10,38 +10,33 @@ import typeDocumentation from '../postgre-data-types.json'
 
 const TYPES = typeDocumentation as any
 
-export const format = (schema: Schema) =>
-  json2md(
-    [
-      { h1: 'Tables' },
-      descriptionToMarkdownJson(schema.tables),
-      { h1: 'Views' },
-      descriptionToMarkdownJson(schema.views),
-      { h1: 'Types' },
-      generateTypesMarkdown(schema.customTypes, schema.compositeTypes),
-    ].flat()
-  )
+export const format = (schema: Schema) => {
+  const customTypeNames = schema.customTypes.map(t => t.name);
+  const compositeTypeNames = schema.compositeTypes.map(t => t.name)
+  const typeNames = customTypeNames.concat(compositeTypeNames)
+  return json2md([
+    { h1: 'Tables' },
+    descriptionToMarkdownJson(schema.tables, typeNames),
+    { h1: 'Views' },
+    descriptionToMarkdownJson(schema.views, typeNames),
+    { h1: 'Types' },
+    generateTypesMarkdown(schema.customTypes, schema.compositeTypes, typeNames)
+  ].flat())
+}
 
-const descriptionToMarkdownJson = (tables: TableDescription[]) => {
-  const tablesMd = tables.map((t) => generateTableDescription(t))
+const descriptionToMarkdownJson = (tables: TableDescription[], typeNames: String[]) => {
+  const tablesMd = tables.map((t) => generateTableDescription(t, typeNames))
   return json2md(tablesMd)
 }
 
 const generateTypesMarkdown = (
   customTypes: CustomType[],
-  compositeTypes: CompositeType[]
+  compositeTypes: CompositeType[],
+  typeNames: String[]
 ) => {
-  let customTypeNames = customTypes.map((t) => t.name)
-  let compositeTypeNames = compositeTypes.map((t) => t.name)
   return [
-    generateCustomTypesMarkdown(
-      customTypes,
-      customTypeNames.concat(compositeTypeNames)
-    ),
-    generateCompositeTypesMarkdown(
-      compositeTypes,
-      customTypeNames.concat(compositeTypeNames)
-    ),
+    generateCustomTypesMarkdown(customTypes, typeNames),
+    generateCompositeTypesMarkdown(compositeTypes, typeNames)
   ].flat()
 }
 
@@ -110,19 +105,19 @@ const maybeCreateTypeLink = (type: String, customTypeNames: String[]) => {
   return type
 }
 
-const generateTableDescription = (tableDescription: TableDescription) => {
+const generateTableDescription = (tableDescription: TableDescription, typeNames: String[]) => {
   const nameWithAnchor = `<a name="${tableDescription.name}"></a>${tableDescription.name}`
   return [
     { h3: nameWithAnchor },
-    generateMarkdownTable(tableDescription.columns),
+    generateMarkdownTable(tableDescription.columns, typeNames),
   ]
 }
 
-const generateMarkdownTable = (columns: ColumnDescription[]) => {
+const generateMarkdownTable = (columns: ColumnDescription[], typeNames: String[]) => {
   const headers = ['Name', 'Type', 'Nullable', 'References']
   const rows = columns.map((column) => [
     formatColumnName(column.name, column.isPrimaryKey),
-    formatDataType(column.dataType),
+    formatDataType(column.dataType, typeNames),
     formatIsNullable(column.isNullable),
     formatForeignKey(column.foreignKey),
   ])
@@ -141,12 +136,9 @@ const formatColumnName = (name: string, isPrimaryKey: boolean) =>
     ? `${name} <span style="background: #ddd; padding: 2px; font-size: 0.75rem">PK</span>`
     : name
 
-const formatDataType = (type: string) => {
-  const docUrl = TYPES[type]
-  if (type === 'USER-DEFINED') return 'user defined'
-  if (docUrl) return `<a href=${docUrl}>${type}</a>`
-  return type
-}
+const formatDataType = (type: string, typeNames: String[]) =>
+  maybeCreateTypeLink(type, typeNames)
+
 
 const formatIsNullable = (isNullable: boolean) =>
   isNullable ? 'True' : 'False'
