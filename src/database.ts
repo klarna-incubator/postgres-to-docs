@@ -38,9 +38,8 @@ export const createDatabase = async (config: Config): Promise<Database> => {
       client.release()
       return result
     } catch (e) {
-      console.log(e)
       client.release()
-      throw new Error('Query failed')
+      throw e
     }
   }
 
