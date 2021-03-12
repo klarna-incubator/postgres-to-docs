@@ -1,62 +1,109 @@
-// import { KlarnaLogger } from '@klarna/kns'
-// import { Decoder } from 'elm-decoders'
-// import { makeQuery, RunQuery, sql } from './lib/query'
+import { createDatabase } from './database'
+import {
+  Column,
+  createRepository,
+  Table,
+  ForeignKey,
+  PrimaryKey,
+  CustomType,
+  View,
+} from './repository'
 
-// const getTablesQuery = makeQuery(sql`SELECT * FROM pg_catalog.pg_tables`, Decoder.any)
-// const getColumnsQuery = makeQuery(sql`select * from information_schema."columns"`, Decoder.any)
-// const getForeignKeys = makeQuery(
-//   sql`SELECT
-//         tc.table_schema,
-//         tc.constraint_name,
-//         tc.table_name,
-//         kcu.column_name,
-//         ccu.table_schema AS foreign_table_schema,
-//         ccu.table_name AS foreign_table_name,
-//         ccu.column_name AS foreign_column_name
-//       FROM  information_schema.table_constraints AS tc
-//       JOIN information_schema.key_column_usage AS kcu
-//         ON tc.constraint_name = kcu.constraint_name
-//         AND tc.table_schema = kcu.table_schema
-//       JOIN information_schema.constraint_column_usage AS ccu
-//         ON ccu.constraint_name = tc.constraint_name
-//         AND ccu.table_schema = tc.table_schema
-//       WHERE tc.constraint_type = 'FOREIGN KEY'
-//   `,
-//   Decoder.any
-// )
+const getColumnsForTable = (table: Table, columns: Column[]) =>
+  columns.filter((c) => c.table === table.name)
 
-// export const runAutoDoc = async (logger: KlarnaLogger, runQuery: RunQuery) => {
-//   const tempTables = await runQuery(getTablesQuery)
-//   const allTables = tempTables as any
-//   const tables = allTables.filter(
-//     (t: any) => !(t.tablename.startsWith('sql_') || t.tablename.startsWith('pg_'))
-//   )
+const withPrimaryKey = (
+  source: Table | View,
+  column: Column,
+  primaryKeys: PrimaryKey[]
+): Column & { isPrimaryKey: boolean } => {
+  const isPrimaryKey = primaryKeys.find(
+    (pk) => pk.table === source.name && pk.column === column.name
+  )
+  return { ...column, isPrimaryKey: !!isPrimaryKey }
+}
 
-//   const tempCols = await runQuery(getColumnsQuery)
-//   const columns = tempCols as any
+const withForeignKey = (
+  source: Table | View,
+  column: Column,
+  foreignKeys: ForeignKey[]
+): Column & { foreignKey?: string } => {
+  const foreignKey = foreignKeys.find(
+    (fk) => fk.sourceTable === source.name && fk.sourceColumn === column.name
+  )
 
-//   const tempFks = await runQuery(getForeignKeys)
-//   const fks = tempFks as any
+  if (!foreignKey) {
+    return column
+  }
+  return {
+    ...column,
+    foreignKey: `${foreignKey.foreignTable}.${foreignKey.foreignColumn}`,
+  }
+}
 
-//   const findFk = (t: any, c: any, fks: any) =>
-//     fks.find((fk: any) => fk.table_name === t.tablename && fk.column_name === c.column_name)
+const withColumns = (
+  source: Table | View,
+  columns: Column[],
+  foreignKeys: ForeignKey[],
+  primaryKeys: PrimaryKey[]
+) => {
+  const tableColumns = getColumnsForTable(source, columns)
+  const withKeys = tableColumns.map((column) =>
+    withForeignKey(
+      source,
+      withPrimaryKey(source, column, primaryKeys),
+      foreignKeys
+    )
+  )
+  return {
+    name: source.name,
+    columns: withKeys,
+  }
+}
 
-//   const grouped = tables.map((t: any) => ({
-//     table: t.tablename,
-//     columns: columns
-//       .filter((c: any) => c.table_name === t.tablename)
-//       .map((c: any) => {
-//         const hasFk = findFk(t, c, fks)
-//         const foreignKey = hasFk ? `${hasFk.foreign_table_name}.${hasFk.foreign_column_name}` : null
-//         return {
-//           foreignKey,
-//           name: c.column_name,
-//           nullable: c.is_nullable,
-//           type: c.data_type,
-//           default: c.column_default,
-//         }
-//       }),
-//   }))
+const buildSchema = (
+  tables: Table[],
+  views: View[],
+  columns: Column[],
+  foreignKeys: ForeignKey[],
+  primaryKeys: PrimaryKey[],
+  customTypes: CustomType[]
+) => {
+  const enrichedTables = tables.map((table) =>
+    withColumns(table, columns, foreignKeys, primaryKeys)
+  )
 
-//   logger.info(':::::::: Grouped :::::', { grouped })
-// }
+  const enrichedViews = views.map((view) =>
+    withColumns(view, columns, foreignKeys, primaryKeys)
+  )
+
+  return {
+    tables: enrichedTables,
+    customTypes,
+    views: enrichedViews,
+  }
+}
+
+const main = async () => {
+  const DATABASE_URL =
+    'postgresql://postgres-to-docs:postgres-to-docs@127.0.0.1/postgres-to-docs'
+
+  const database = await createDatabase({ DATABASE_URL })
+  const repository = createRepository(database.query)
+
+  // TODO Maybe run the table + column + fks + pks as a big join instead of multiple queries
+  const tables = await repository.selectTables()
+  const views = await repository.selectViews()
+  const columns = await repository.selectColumns()
+  const foreignKeys = await repository.selectForeignKeys()
+  const primaryKeys = await repository.selectPrimaryKeys()
+  const customTypes = await repository.selectCustomTypes()
+
+  console.log(
+    JSON.stringify(
+      buildSchema(tables, views, columns, foreignKeys, primaryKeys, customTypes)
+    )
+  )
+}
+
+main()

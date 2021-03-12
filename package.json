@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/klarna-incubator/postgresql-to-docs#readme",
   "dependencies": {
+    "@types/pg": "^7.14.11",
+    "elm-decoders": "^6.0.1",
     "pg": "^8.5.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.3"
