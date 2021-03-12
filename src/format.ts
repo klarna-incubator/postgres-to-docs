@@ -23,11 +23,24 @@ export const format = (schema: Schema) => {
 const generateTypesMarkdown = (customTypes: CustomType[], compositeTypes: CompositeType[]) => {
   let customTypeNames = customTypes.map(t => t.name);
   let compositeTypeNames = compositeTypes.map(t => t.name)
-  
   return [
     {h2: "Types"},
+    generateCustomTypesMarkdown(customTypes, customTypeNames.concat(compositeTypeNames)),
     generateCompositeTypesMarkdown(compositeTypes, customTypeNames.concat(compositeTypeNames))
   ].flat()
+}
+
+const generateCustomTypesMarkdown = (customTypes: CustomType[], customTypeNames: String[]) => {
+  return customTypes.map(custom => generateCustomTypeMarkdown(custom, customTypeNames)).flat();
+}
+
+const generateCustomTypeMarkdown = (custom: CustomType, customTypeNames: String[]) => {
+  let nameWithAnchor =
+    '<a name="' + custom.name + '" > </a>' + custom.name
+  return [
+    {h3: nameWithAnchor},
+    {ul: custom.elements.map(elem => elem.trim())}
+  ]
 }
 
 const generateCompositeTypesMarkdown = (compositeTypes: CompositeType[], customTypeNames: String[]) => {

@@ -84,11 +84,15 @@ export const getSchema = async (repository: Repository) => {
   const columns = await repository.selectColumns()
   const foreignKeys = await repository.selectForeignKeys()
   const primaryKeys = await repository.selectPrimaryKeys()
-  const customTypes = await repository.selectCustomTypes()
+  const customTypes = await (await repository.selectCustomTypes())
   const compositeTypes = await repository.selectCompositeTypes()
 
   const enrichedTables = tables.map((table) =>
     withColumns(table, columns, foreignKeys, primaryKeys)
+  )
+
+  const filteredCustomTypes = customTypes.filter(custom =>
+    custom.elements.filter(elem => elem.length > 0).length > 0
   )
 
   const enrichedViews = views.map((view) =>
@@ -99,7 +103,7 @@ export const getSchema = async (repository: Repository) => {
 
   return {
     tables: enrichedTables,
-    customTypes,
+    customTypes: filteredCustomTypes,
     compositeTypes: compactedComposites,
     views: enrichedViews,
   }
