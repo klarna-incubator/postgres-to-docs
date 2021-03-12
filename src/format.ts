@@ -1,5 +1,5 @@
-import { ColumnDescription, Schema, TableDescription } from './get-schema'
-import { Column } from './repository'
+import { ColumnDescription, Schema, TableDescription, CompositeType } from './get-schema'
+import { CustomType } from './repository'
 import json2md from 'json2md'
 
 export const format = (schema: Schema) =>
@@ -8,35 +8,19 @@ export const format = (schema: Schema) =>
     descriptionToMarkdownJson(schema.tables),
     { h1: 'Views' },
     descriptionToMarkdownJson(schema.views),
-  ])
+    { h1: 'Types' },
+    generateTypesMarkdown(schema.customTypes, schema.compositeTypes)
+  ].flat())
 
 const descriptionToMarkdownJson = (tables: TableDescription[]) => {
   const tablesMd = tables.map((t) => generateTableDescription(t))
   return json2md(tablesMd)
-
-type TableDescription = {
-  name: String
-  columns: (Column & {
-    isPrimaryKey: boolean
-    foreignKey?: string
-  })[]
-}
-
-export const format = (schema: Schema) => {
-  const tablesDocs: any = generateTablesMarkdown(schema.tables)
-  const typesDocs: any = generateTypesMarkdown(schema.customTypes, schema.compositeTypes)
-  let documentation = [
-    tablesDocs,
-    typesDocs
-  ].flat()
-  return json2md(documentation)
 }
 
 const generateTypesMarkdown = (customTypes: CustomType[], compositeTypes: CompositeType[]) => {
   let customTypeNames = customTypes.map(t => t.name);
   let compositeTypeNames = compositeTypes.map(t => t.name)
   return [
-    {h2: "Types"},
     generateCustomTypesMarkdown(customTypes, customTypeNames.concat(compositeTypeNames)),
     generateCompositeTypesMarkdown(compositeTypes, customTypeNames.concat(compositeTypeNames))
   ].flat()
@@ -83,11 +67,9 @@ const generateCompositeTypeMarkdown = (composite: CompositeType, customTypeNames
 
 const maybeCreateTypeLink = (type: String, customTypeNames: String[]) => {
   if (customTypeNames.includes(type)) {
-    return '[' + type + '](#' + type + ')'
+    return `[${type}](#${type})`
   }
   return type
-}
-
 }
 
 const generateTableDescription = (tableDescription: TableDescription) => {
