@@ -1,6 +1,14 @@
-import { ColumnDescription, Schema, TableDescription, CompositeType } from './get-schema'
+import {
+  ColumnDescription,
+  Schema,
+  TableDescription,
+  CompositeType,
+} from './get-schema'
 import { CustomType } from './repository'
 import json2md from 'json2md'
+import typeDocumentation from '../postgre-data-types.json'
+
+const TYPES = typeDocumentation as any
 
 export const format = (schema: Schema) => {
   const customTypeNames = schema.customTypes.map(t => t.name);
@@ -21,49 +29,72 @@ const descriptionToMarkdownJson = (tables: TableDescription[], typeNames: String
   return json2md(tablesMd)
 }
 
-const generateTypesMarkdown = (customTypes: CustomType[], compositeTypes: CompositeType[], typeNames: String[]) => {
+const generateTypesMarkdown = (
+  customTypes: CustomType[],
+  compositeTypes: CompositeType[],
+  typeNames: String[]
+) => {
   return [
     generateCustomTypesMarkdown(customTypes, typeNames),
     generateCompositeTypesMarkdown(compositeTypes, typeNames)
   ].flat()
 }
 
-const generateCustomTypesMarkdown = (customTypes: CustomType[], customTypeNames: String[]) => {
-  return customTypes.map(custom => generateCustomTypeMarkdown(custom, customTypeNames)).flat();
+const generateCustomTypesMarkdown = (
+  customTypes: CustomType[],
+  customTypeNames: String[]
+) => {
+  return customTypes
+    .map((custom) => generateCustomTypeMarkdown(custom, customTypeNames))
+    .flat()
 }
 
-const generateCustomTypeMarkdown = (custom: CustomType, customTypeNames: String[]) => {
-  let nameWithAnchor =
-    '<a name="' + custom.name + '" > </a>' + custom.name
+const generateCustomTypeMarkdown = (
+  custom: CustomType,
+  customTypeNames: String[]
+) => {
+  let nameWithAnchor = '<a name="' + custom.name + '" > </a>' + custom.name
   return [
-    {h3: nameWithAnchor},
-    {ul: custom.elements.map(elem => elem.trim())}
+    { h3: nameWithAnchor },
+    { ul: custom.elements.map((elem) => elem.trim()) },
   ]
 }
 
-const generateCompositeTypesMarkdown = (compositeTypes: CompositeType[], customTypeNames: String[]) => {
-  return compositeTypes.map(composite => generateCompositeTypeMarkdown(composite, customTypeNames)).flat();
+const generateCompositeTypesMarkdown = (
+  compositeTypes: CompositeType[],
+  customTypeNames: String[]
+) => {
+  return compositeTypes
+    .map((composite) =>
+      generateCompositeTypeMarkdown(composite, customTypeNames)
+    )
+    .flat()
 }
 
-const generateCompositeTypeMarkdown = (composite: CompositeType, customTypeNames: String[]) => {
-  const headers = ["column name", "type", "position", "required?"]
+const generateCompositeTypeMarkdown = (
+  composite: CompositeType,
+  customTypeNames: String[]
+) => {
+  const headers = ['column name', 'type', 'position', 'required?']
   let nameWithAnchor =
     '<a name="' + composite.name + '" > </a>' + composite.name
-  let rows = composite.fields.map(field => {
+  let rows = composite.fields.map((field) => {
     const typeWithLink = maybeCreateTypeLink(field.dataType, customTypeNames)
     return [
       field.name,
       typeWithLink,
       field.position,
-      field.isRequired.toString()
+      field.isRequired.toString(),
     ]
   })
   return [
     { h3: nameWithAnchor },
-    { table: {
-      headers: headers,
-      rows: rows,
-    }}
+    {
+      table: {
+        headers: headers,
+        rows: rows,
+      },
+    },
   ]
 }
 
@@ -107,6 +138,7 @@ const formatColumnName = (name: string, isPrimaryKey: boolean) =>
 
 const formatDataType = (type: string, typeNames: String[]) =>
   maybeCreateTypeLink(type, typeNames)
+
 
 const formatIsNullable = (isNullable: boolean) =>
   isNullable ? 'True' : 'False'
