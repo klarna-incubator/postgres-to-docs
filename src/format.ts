@@ -1,14 +1,12 @@
-import { Schema } from './build'
-import {
-  Column
-} from './repository'
+import { Schema } from './get-schema'
+import { Column } from './repository'
 const json2md = require('json2md')
 
 type TableDescription = {
-  name: String;
+  name: String
   columns: (Column & {
-    isPrimaryKey: boolean;
-    foreignKey?: string;
+    isPrimaryKey: boolean
+    foreignKey?: string
   })[]
 }
 
@@ -17,47 +15,55 @@ export const format = (schema: Schema) => {
 }
 
 const descriptionToMarkdownJson = (tables: TableDescription[]) => {
-  const tablesMd = tables.map(x => generateTableDescription(x))
-  let arr: any[] = [];
-  tablesMd.forEach(element => {
-    element.forEach(e => {
+  const tablesMd = tables.map((x) => generateTableDescription(x))
+  let arr: any[] = []
+  tablesMd.forEach((element) => {
+    element.forEach((e) => {
       arr.push(e)
     })
-  });
-  return json2md([{ h2: "Tables" }].concat(arr))
+  })
+  return json2md([{ h2: 'Tables' }].concat(arr))
 }
 
 const generateTableDescription = (tableDescription: TableDescription) => {
-  let nameWithAnchor = "<a name=\"" + tableDescription.name + "\" > </a>" + tableDescription.name
+  let nameWithAnchor =
+    '<a name="' + tableDescription.name + '" > </a>' + tableDescription.name
   return [
     { h3: nameWithAnchor },
-    generateMarkdownTable(tableDescription.columns)
+    generateMarkdownTable(tableDescription.columns),
   ]
 }
 
-const generateMarkdownTable = (columns: (Column & {
-  isPrimaryKey: boolean;
-  foreignKey?: string;
-})[]) => {
-  const headers = ["name", "type", "nullable ?", "references"]
-  let rows = columns.map(column => {
+const generateMarkdownTable = (
+  columns: (Column & {
+    isPrimaryKey: boolean
+    foreignKey?: string
+  })[]
+) => {
+  const headers = ['name', 'type', 'nullable ?', 'references']
+  let rows = columns.map((column) => {
     let columnName = column.name
     if (column.isPrimaryKey) {
-      columnName += "<span style=\"color: red\"> primary key </span> "
+      columnName += '<span style="color: red"> primary key </span> '
     }
-    let foreignKey;
+    let foreignKey
     if (column.foreignKey) {
-      let otherTable = column.foreignKey.split(".")[0]
-      foreignKey = "[" + column.foreignKey + "](#" + otherTable + ")"
+      let otherTable = column.foreignKey.split('.')[0]
+      foreignKey = '[' + column.foreignKey + '](#' + otherTable + ')'
     } else {
-      foreignKey = ""
+      foreignKey = ''
     }
-    return [columnName, column.dataType, column.isNullable.toString(), foreignKey]
+    return [
+      columnName,
+      column.dataType,
+      column.isNullable.toString(),
+      foreignKey,
+    ]
   })
   return {
     table: {
       headers: headers,
-      rows: rows
-    }
+      rows: rows,
+    },
   }
 }

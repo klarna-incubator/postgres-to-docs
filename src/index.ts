@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { build } from './build'
+import { getSchema } from './get-schema'
 import { createDatabase } from './database'
 import { format } from './format'
 import { createRepository } from './repository'
@@ -31,6 +31,17 @@ const readFile = (path: string) =>
     })
   })
 
+const writeFile = (path: string, content: string) =>
+  new Promise((resolve, reject) => {
+    fs.writeFile(path, content, (err) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(null)
+    })
+  })
+
 const getDbConfig = async (configPath: string) => {
   const rawConfig = await readFile(configPath)
   return parseConfig(rawConfig)
@@ -47,8 +58,8 @@ const main = async () => {
     const dbConfig = await getDbConfig(rawArguments.config)
     const database = await createDatabase(dbConfig)
     const repository = createRepository(database.query)
-    const schema = await build(repository)
-    console.log(format(schema))
+    const schema = await getSchema(repository)
+    await writeFile(rawArguments.output, JSON.stringify(schema))
   } catch (e) {
     console.log('postgres doc failed', e)
   }

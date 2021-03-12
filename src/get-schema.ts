@@ -67,14 +67,14 @@ const withColumns = (
   }
 }
 
-const buildSchema = (
-  tables: Table[],
-  views: View[],
-  columns: Column[],
-  foreignKeys: ForeignKey[],
-  primaryKeys: PrimaryKey[],
-  customTypes: CustomType[]
-): Schema => {
+export const getSchema = async (repository: Repository) => {
+  const tables = await repository.selectTables()
+  const views = await repository.selectViews()
+  const columns = await repository.selectColumns()
+  const foreignKeys = await repository.selectForeignKeys()
+  const primaryKeys = await repository.selectPrimaryKeys()
+  const customTypes = await repository.selectCustomTypes()
+
   const enrichedTables = tables.map((table) =>
     withColumns(table, columns, foreignKeys, primaryKeys)
   )
@@ -88,21 +88,4 @@ const buildSchema = (
     customTypes,
     views: enrichedViews,
   }
-}
-
-export const build = async (repository: Repository) => {
-  const tables = await repository.selectTables()
-  const views = await repository.selectViews()
-  const columns = await repository.selectColumns()
-  const foreignKeys = await repository.selectForeignKeys()
-  const primaryKeys = await repository.selectPrimaryKeys()
-  const customTypes = await repository.selectCustomTypes()
-  return buildSchema(
-    tables,
-    views,
-    columns,
-    foreignKeys,
-    primaryKeys,
-    customTypes
-  )
 }
