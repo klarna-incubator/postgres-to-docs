@@ -28,12 +28,13 @@ const columnResultDecoder: Decoder<Column[]> = Decoder.array(
     column_default: Decoder.optional(Decoder.string),
     is_nullable: Decoder.string.map((s) => s === 'YES'),
     data_type: Decoder.string,
+    udt_name: Decoder.string
   }).map((res) => ({
     table: res.table_name,
     name: res.column_name,
     default: res.column_default,
     isNullable: res.is_nullable,
-    dataType: res.data_type,
+    dataType: res.data_type == 'USER-DEFINED' ? res.udt_name : res.data_type,
   }))
 )
 
