@@ -4,7 +4,6 @@ import {
   ForeignKey,
   PrimaryKey,
   CustomType,
-  CompositeType,
   View,
   Repository,
 } from './repository'
@@ -69,6 +68,16 @@ const withColumns = (
   }
 }
 
+export type CompositeType = {
+  name: string,
+  fields: {
+    name: string,
+    dataType: string,
+    isRequired: boolean,
+    position: number
+  }[]
+}
+
 export const getSchema = async (repository: Repository) => {
   const tables = await repository.selectTables()
   const views = await repository.selectViews()
@@ -86,10 +95,36 @@ export const getSchema = async (repository: Repository) => {
     withColumns(view, columns, foreignKeys, primaryKeys)
   )
 
+  const compactedComposites = compactComposites(compositeTypes)
+
   return {
     tables: enrichedTables,
     customTypes,
-    compositeTypes,
+    compositeTypes: compactedComposites,
     views: enrichedViews,
   }
+}
+
+const compactComposites = (compositeTypes: any[]) => {
+  let map = new Map()
+  compositeTypes.forEach(composite => {
+    let name: String = composite.name
+    if (map.has(name)) {
+      let elem = map.get(name)
+      elem.fields.push({
+        name: composite.columnName,
+        dataType: composite.dataType,
+        isRequired: composite.isRequired,
+        position: composite.position
+      })
+    } else {
+      map.set(name, {name: name, fields: [{
+        name: composite.columnName,
+        dataType: composite.dataType,
+        isRequired: composite.isRequired,
+        position: composite.position
+      }]})
+    }
+  })
+  return [...map.values()]
 }
