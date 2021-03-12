@@ -59,7 +59,7 @@ const main = async () => {
     const database = await createDatabase(dbConfig)
     const repository = createRepository(database.query)
     const schema = await getSchema(repository)
-    await writeFile(rawArguments.output, JSON.stringify(schema))
+    await writeFile(rawArguments.output, format(schema))
   } catch (e) {
     console.log('postgres doc failed', e)
   }

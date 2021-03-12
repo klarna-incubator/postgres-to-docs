@@ -4,6 +4,7 @@ import {
   ForeignKey,
   PrimaryKey,
   CustomType,
+  CompositeType,
   View,
   Repository,
 } from './repository'
@@ -14,6 +15,7 @@ export type Schema = {
     columns: (Column & { isPrimaryKey: boolean; foreignKey?: string })[]
   }[]
   customTypes: CustomType[]
+  compositeTypes: CompositeType[]
   views: View[]
 }
 
@@ -74,6 +76,7 @@ export const getSchema = async (repository: Repository) => {
   const foreignKeys = await repository.selectForeignKeys()
   const primaryKeys = await repository.selectPrimaryKeys()
   const customTypes = await repository.selectCustomTypes()
+  const compositeTypes = await repository.selectCompositeTypes()
 
   const enrichedTables = tables.map((table) =>
     withColumns(table, columns, foreignKeys, primaryKeys)
@@ -86,6 +89,7 @@ export const getSchema = async (repository: Repository) => {
   return {
     tables: enrichedTables,
     customTypes,
+    compositeTypes,
     views: enrichedViews,
   }
 }
