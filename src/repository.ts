@@ -94,7 +94,6 @@ const primaryKeyResultDecoder: Decoder<PrimaryKey[]> = Decoder.array(
 export type CustomType = {
   name: string
   internalName: string
-  size: number
   elements: string[]
 }
 
@@ -102,12 +101,10 @@ const customTypeResultDecoder: Decoder<CustomType[]> = Decoder.array(
   Decoder.object({
     name: Decoder.string,
     internal_name: Decoder.string,
-    size: Decoder.number,
     elements: Decoder.string.map((str) => str.split(',')),
   }).map((res) => ({
     name: res.name,
     internalName: res.internal_name,
-    size: res.size,
     elements: res.elements,
   }))
 )
@@ -177,13 +174,6 @@ export const createRepository = (query: Database['query']) => {
       SELECT n.nspname AS schema,
           pg_catalog.format_type ( t.oid, NULL ) AS name,
           t.typname AS internal_name,
-          CASE
-              WHEN t.typrelid != 0
-              THEN CAST ( 'tuple' AS pg_catalog.text )
-              WHEN t.typlen < 0
-              THEN CAST ( 'var' AS pg_catalog.text )
-              ELSE CAST ( t.typlen AS pg_catalog.text )
-          END AS size,
           pg_catalog.array_to_string (
               ARRAY( SELECT e.enumlabel
                       FROM pg_catalog.pg_enum e

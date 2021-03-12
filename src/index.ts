@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { build } from './build'
 import { createDatabase } from './database'
+import { format } from './format'
 import { createRepository } from './repository'
 import fs from 'fs'
 import { parseConfig } from './config'
@@ -47,6 +48,7 @@ const main = async () => {
     const database = await createDatabase(dbConfig)
     const repository = createRepository(database.query)
     const schema = await build(repository)
+    console.log(format(schema))
   } catch (e) {
     console.log('postgres doc failed', e)
   }
