@@ -1,5 +1,6 @@
 import { build } from './build'
 import { createDatabase } from './database'
+import { format } from './format'
 import { createRepository } from './repository'
 
 const main = async () => {
@@ -12,7 +13,7 @@ const main = async () => {
   })
   const repository = createRepository(database.query)
   const schema = await build(repository)
-  console.log(schema)
+  console.log(format(schema))
 }
 
 main()
