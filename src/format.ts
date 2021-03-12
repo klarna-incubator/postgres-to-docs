@@ -1,6 +1,18 @@
-import { Schema, CompositeType } from './get-schema'
-import { Column, CustomType } from './repository'
-const json2md = require('json2md')
+import { ColumnDescription, Schema, TableDescription } from './get-schema'
+import { Column } from './repository'
+import json2md from 'json2md'
+
+export const format = (schema: Schema) =>
+  json2md([
+    { h1: 'Tables' },
+    descriptionToMarkdownJson(schema.tables),
+    { h1: 'Views' },
+    descriptionToMarkdownJson(schema.views),
+  ])
+
+const descriptionToMarkdownJson = (tables: TableDescription[]) => {
+  const tablesMd = tables.map((t) => generateTableDescription(t))
+  return json2md(tablesMd)
 
 type TableDescription = {
   name: String
@@ -76,56 +88,49 @@ const maybeCreateTypeLink = (type: String, customTypeNames: String[]) => {
   return type
 }
 
-const generateTablesMarkdown = (tables: TableDescription[]) => {
-  const tablesMd = tables.map((x) => generateTableDescription(x))
-  let arr: any[] = []
-  tablesMd.forEach((element) => {
-    element.forEach((e) => {
-      arr.push(e)
-    })
-  })
-  return [{ h2: 'Tables' }].concat(arr)
 }
 
 const generateTableDescription = (tableDescription: TableDescription) => {
-  let nameWithAnchor =
-    '<a name="' + tableDescription.name + '" > </a>' + tableDescription.name
+  const nameWithAnchor = `<a name="${tableDescription.name}"></a>${tableDescription.name}`
   return [
     { h3: nameWithAnchor },
     generateMarkdownTable(tableDescription.columns),
   ]
 }
 
-const generateMarkdownTable = (
-  columns: (Column & {
-    isPrimaryKey: boolean
-    foreignKey?: string
-  })[]
-) => {
-  const headers = ['name', 'type', 'nullable ?', 'references']
-  let rows = columns.map((column) => {
-    let columnName = column.name
-    if (column.isPrimaryKey) {
-      columnName += '<span style="color: red"> primary key </span> '
-    }
-    let foreignKey
-    if (column.foreignKey) {
-      let otherTable = column.foreignKey.split('.')[0]
-      foreignKey = '[' + column.foreignKey + '](#' + otherTable + ')'
-    } else {
-      foreignKey = ''
-    }
-    return [
-      columnName,
-      column.dataType,
-      column.isNullable.toString(),
-      foreignKey,
-    ]
-  })
+const generateMarkdownTable = (columns: ColumnDescription[]) => {
+  const headers = ['Name', 'Type', 'Nullable', 'References']
+  const rows = columns.map((column) => [
+    formatColumnName(column.name, column.isPrimaryKey),
+    formatDataType(column.dataType),
+    formatIsNullable(column.isNullable),
+    formatForeignKey(column.foreignKey),
+  ])
+
   return {
     table: {
+      aligns: 'left',
       headers: headers,
       rows: rows,
     },
   }
+}
+
+const formatColumnName = (name: string, isPrimaryKey: boolean) =>
+  isPrimaryKey
+    ? `${name} <span style="background: #ddd; padding: 2px; font-size: 0.75rem">PK</span>`
+    : name
+
+const formatDataType = (type: string) =>
+  type === 'USER-DEFINED' ? 'user defined' : type
+
+const formatIsNullable = (isNullable: boolean) =>
+  isNullable ? 'True' : 'False'
+
+const formatForeignKey = (foreignKey?: string) =>
+  foreignKey ? formatForeignKeyLink(foreignKey) : ''
+
+const formatForeignKeyLink = (foreignKey: string) => {
+  const otherTable = foreignKey.split('.')[0]
+  return `[${foreignKey}](#${otherTable})`
 }

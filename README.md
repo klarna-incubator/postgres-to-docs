@@ -1,12 +1,12 @@
-# Project Name
-> Short blurb about what your project does.
+# Postgres auto doc
+> Make your database overview **smoooth**.
 
 [![Build Status][ci-image]][ci-url]
 [![License][license-image]][license-url]
 [![Developed at Klarna][klarna-image]][klarna-url]
 
 
-One to two paragraph statement about your project and what it does.
+Postgres auto doc generates a human readable file for your database structure.
 
 ## First steps
 
@@ -22,21 +22,60 @@ One to two paragraph statement about your project and what it does.
   3. Enable Dependabot alerts in your candidate repo settings under Security & analysis. You need to enable ‘Allow GitHub to perform read-only analysis of this repository’ first.
 </details>
 
-1. Update `README.md` and `CHANGELOG.md`.
+TODO
 
-2. Optionally, change `.github/CONTRIBUTING.md`.
+## Problem
 
-3. Do *not* edit `LICENSE`, `.github/CODE_OF_CONDUCT.md`, and `.github/SECURITY.md`.
+> You want to get a quick and easy overview of the database setup In your services, for example when having a technical discussion or writing a discovery. You have to start the entire service (pull images, start containers, have to correct config) and open e.g table plus, 
+or check through the migrations to see how they are configured.
+
+It would be beneficial to have an external source of database docs that is easier to open and understand. 
+ However, just introducing more manual documentation (or having to screenshot an external application like table plus) introduces another piece to maintain and keep up to date.
+
+## Introducing auto docs!
+
+* Keeping docs up to date automatically. The team doesn’t have to maintain documentation that is separate from postgres/code
+* Only requires the service to run when generating the docs, not when viewing them
+
+
+
+## Extensions
+* CLI / runner - the user facing interface that can be used to run the script
+* Generator script
+* Visualization script
+* Extensions
+* More export types, e.g a png with a entity relationship diagram
+* Performance, currently a log of queries
+* Watch mode to run the script automatically when a directory changes. E.g put watch mode on the migrations directory and re run.
+* Tests
+
+#### How to
+Create an example project that: 
+* Starts a Postgres database
+* Runs migrations/creates tables
+* Runs the auto doc script
+* Saves the result to an md-file
+* Reference the file in a readme
 
 ## Usage example
 
-A few motivating and useful examples of how your project can be used. Spice this up with code blocks and potentially more screenshots.
+* Configure ***host***, ***port***, ***user***, ***pasword*** and ***database*** in configuration.json
+
+```
+{
+  "host": "localhost",
+  "port": 5432,
+  "user": "user",
+  "password": "password",
+  "database": "postgres-auto-docs"
+} 
+```
 
 _For more examples and usage, please refer to the [Docs](TODO)._
 
 ## Development setup
 
-Describe how to install all development dependencies and how to run an automated test-suite of some kind. Potentially do this for multiple platforms.
+TODO
 
 ```sh
 make install
