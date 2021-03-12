@@ -34,6 +34,7 @@ const generateMarkdownTable = (columns: ColumnDescription[]) => {
 
   return {
     table: {
+      aligns: 'left',
       headers: headers,
       rows: rows,
     },
@@ -41,7 +42,9 @@ const generateMarkdownTable = (columns: ColumnDescription[]) => {
 }
 
 const formatColumnName = (name: string, isPrimaryKey: boolean) =>
-  isPrimaryKey ? `<a name="${name}" ></a> ${name}` : name
+  isPrimaryKey
+    ? `${name} <span style="background: #ddd; padding: 2px; font-size: 0.75rem">PK</span>`
+    : name
 
 const formatDataType = (type: string) =>
   type === 'USER-DEFINED' ? 'user defined' : type

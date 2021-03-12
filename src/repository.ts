@@ -117,7 +117,7 @@ export const createRepository = (query: Database['query']) => {
     return decoded
   }
   const selectColumns = async () => {
-    const queryString = `SELECT * FROM information_schema."columns"`
+    const queryString = `SELECT * FROM information_schema."columns" ORDER BY ordinal_position`
     const result = await query(queryString)
     const decoded = columnResultDecoder.guard(result.rows)
     return decoded

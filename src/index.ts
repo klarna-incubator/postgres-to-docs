@@ -14,10 +14,10 @@ export const generateDocumentation = async (
   const repository = createRepository(database.query)
   try {
     const schema = await getSchema(repository)
-    await database.disconnect()
     await File.write(outputPath, format(schema))
   } catch (e) {
-    await database.disconnect()
     throw e
+  } finally {
+    await database.disconnect()
   }
 }
