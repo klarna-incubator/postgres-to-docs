@@ -8,13 +8,20 @@ import {
   Repository,
 } from './repository'
 
+export type ColumnDescription = Column & {
+  isPrimaryKey: boolean
+  foreignKey?: string
+}
+
+export type TableDescription = {
+  name: string
+  columns: ColumnDescription[]
+}
+
 export type Schema = {
-  tables: {
-    name: string
-    columns: (Column & { isPrimaryKey: boolean; foreignKey?: string })[]
-  }[]
+  tables: TableDescription[]
   customTypes: CustomType[]
-  views: View[]
+  views: TableDescription[]
 }
 
 const getColumnsForTable = (table: Table, columns: Column[]) =>
