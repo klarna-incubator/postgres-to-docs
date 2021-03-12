@@ -1,4 +1,5 @@
 import { Pool } from 'pg'
+import { Config } from './config'
 
 export type Database = {
   isAlive: () => Promise<boolean>
@@ -6,13 +7,13 @@ export type Database = {
   query: (queryString: string, args?: any[]) => Promise<any>
 }
 
-export const createDatabase = async ({
-  DATABASE_URL,
-}: {
-  DATABASE_URL: string
-}): Promise<Database> => {
+export const createDatabase = async (config: Config): Promise<Database> => {
   const pool = new Pool({
-    connectionString: DATABASE_URL,
+    user: config.user,
+    host: config.host,
+    database: config.database,
+    password: config.password,
+    port: config.port,
   })
 
   try {
