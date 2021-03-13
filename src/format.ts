@@ -34,8 +34,11 @@ const descriptionToMarkdownJson = (
   tables: TableDescription[],
   typeNames: string[]
 ) => {
+  if (tables.length === 0) {
+    return [{ p: 'None' }]
+  }
   const tablesMd = tables.map((t) => generateTableDescription(t, typeNames))
-  return json2md(tablesMd)
+  return tablesMd
 }
 
 const generateTypesMarkdown = (
@@ -43,6 +46,9 @@ const generateTypesMarkdown = (
   compositeTypes: CompositeType[],
   typeNames: string[]
 ) => {
+  if (customTypes.length === 0 && compositeTypes.length === 0) {
+    return [{ p: 'None' }]
+  }
   return [
     generateCustomTypesMarkdown(customTypes, typeNames),
     generateCompositeTypesMarkdown(compositeTypes, typeNames),
