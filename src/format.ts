@@ -16,12 +16,9 @@ export const format = (schema: Schema) => {
   const typeNames = customTypeNames.concat(compositeTypeNames)
   return json2md(
     [
-      { h1: 'Tables' },
-      descriptionToMarkdownJson(schema.tables, typeNames),
-      { h1: 'Views' },
-      descriptionToMarkdownJson(schema.views, typeNames),
-      { h1: 'Types' },
-      generateTypesMarkdown(
+      generateTableSection(schema.tables, typeNames),
+      generateViewsSection(schema.views, typeNames),
+      generateTypesSection(
         schema.customTypes,
         schema.compositeTypes,
         typeNames
@@ -30,30 +27,57 @@ export const format = (schema: Schema) => {
   )
 }
 
-const descriptionToMarkdownJson = (
+const generateTableSection = (
   tables: TableDescription[],
   typeNames: string[]
 ) => {
   if (tables.length === 0) {
-    return [{ p: 'None' }]
+    return []
   }
-  const tablesMd = tables.map((t) => generateTableDescription(t, typeNames))
-  return tablesMd
+
+  return [{ h1: 'Tables' }, generateTablesMarkdown(tables, typeNames)]
 }
 
-const generateTypesMarkdown = (
+const generateViewsSection = (
+  views: TableDescription[],
+  typeNames: string[]
+) => {
+  if (views.length === 0) {
+    return []
+  }
+
+  return [{ h1: 'Views' }, generateTablesMarkdown(views, typeNames)]
+}
+
+const generateTypesSection = (
   customTypes: CustomType[],
   compositeTypes: CompositeType[],
   typeNames: string[]
 ) => {
   if (customTypes.length === 0 && compositeTypes.length === 0) {
-    return [{ p: 'None' }]
+    return []
   }
+
   return [
+    { h1: 'Types' },
+    generateTypesMarkdown(customTypes, compositeTypes, typeNames),
+  ]
+}
+
+const generateTablesMarkdown = (
+  tables: TableDescription[],
+  typeNames: string[]
+) => tables.map((t) => generateTableDescription(t, typeNames))
+
+const generateTypesMarkdown = (
+  customTypes: CustomType[],
+  compositeTypes: CompositeType[],
+  typeNames: string[]
+) =>
+  [
     generateCustomTypesMarkdown(customTypes, typeNames),
     generateCompositeTypesMarkdown(compositeTypes, typeNames),
   ].flat()
-}
 
 const generateCustomTypesMarkdown = (
   customTypes: CustomType[],
