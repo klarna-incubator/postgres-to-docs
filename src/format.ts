@@ -129,10 +129,11 @@ const generateMarkdownTable = (
   columns: ColumnDescription[],
   typeNames: string[]
 ) => {
-  const headers = ['Name', 'Type', 'Nullable', 'References']
+  const headers = ['Name', 'Type', 'Default', 'Nullable', 'References']
   const rows = columns.map((column) => [
     formatColumnName(column.name, column.isPrimaryKey),
     formatDataType(column.dataType, typeNames),
+    formatDefault(column.default),
     formatIsNullable(column.isNullable),
     formatForeignKey(column.foreignKey),
   ])
@@ -153,6 +154,8 @@ const formatColumnName = (name: string, isPrimaryKey: boolean) =>
 
 const formatDataType = (type: string, typeNames: string[]) =>
   maybeCreateTypeLink(type, typeNames)
+
+const formatDefault = (def?: string) => def || ''
 
 const formatIsNullable = (isNullable: boolean) =>
   isNullable ? 'True' : 'False'
