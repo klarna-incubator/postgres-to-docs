@@ -149,7 +149,7 @@ const generateMarkdownTable = (
 
 const formatColumnName = (name: string, isPrimaryKey: boolean) =>
   isPrimaryKey
-    ? `${name} <span style="background: #ddd; padding: 2px; font-size: 0.75rem">PK</span>`
+    ? `${name} <span style="background: #ddd; padding: 2px; font-size: 0.75rem; color: black">PK</span>`
     : name
 
 const formatDataType = (type: string, typeNames: string[]) =>
