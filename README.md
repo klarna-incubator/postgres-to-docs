@@ -1,12 +1,9 @@
-# Postgres auto doc
-> Make your database overview **smoooth**.
-
+# postgres-to-docs
 [![Build Status][ci-image]][ci-url]
 [![License][license-image]][license-url]
 [![Developed at Klarna][klarna-image]][klarna-url]
 
-
-Postgres auto doc generates a human readable file for your database structure.
+Make your database documentation smoooth by generating markdown for your schema.
 
 ## Usage
 
