@@ -1,11 +1,10 @@
 {
-  "name": "postgresql-to-docs",
-  "version": "1.0.0",
-  "description": "> Short blurb about what your project does.",
-  "main": "index.js",
-  "bin": {
-    "postgres-doc": "./dist/src/cli.js"
-  },
+  "name": "@klarna/postgres-to-docs",
+  "version": "0.1.0",
+  "description": "The smoooth way to document your Postgres database",
+  "main": "./dist/index.js",
+  "bin": "./dist/cli.js",
+  "prepublish": "tsc -p ./tsconfig.json",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "ts-node ./src/cli.ts",
@@ -13,23 +12,23 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/klarna-incubator/postgresql-to-docs.git"
+    "url": "git+https://github.com/klarna-incubator/postgres-to-docs.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/klarna-incubator/postgresql-to-docs/issues"
+    "url": "https://github.com/klarna-incubator/postgres-to-docs/issues"
   },
-  "homepage": "https://github.com/klarna-incubator/postgresql-to-docs#readme",
+  "homepage": "https://github.com/klarna-incubator/postgres-to-docs#readme",
   "dependencies": {
-    "@types/pg": "^7.14.11",
     "elm-decoders": "^6.0.1",
     "pg": "^8.5.1",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.3"
+    "json2md": "^1.10.0"
   },
   "devDependencies": {
+    "@types/pg": "^7.14.11",
     "@types/json2md": "^1.5.0",
-    "json2md": "^1.10.0"
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
   }
 }

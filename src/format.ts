@@ -6,7 +6,7 @@ import {
 } from './get-schema'
 import { CustomType } from './repository'
 import json2md from 'json2md'
-import typeDocumentation from '../postgre-data-types.json'
+import typeDocumentation from './postgre-data-types.json'
 
 const TYPES = typeDocumentation as any
 
