@@ -8,78 +8,56 @@
 
 Postgres auto doc generates a human readable file for your database structure.
 
-## First steps
+## Usage
 
-<details>
- <summary>Installation (for Admins)</summary>
-  
-  Currently, new repositories can be created only by a Klarna Open Source community lead. Please reach out to us if you need assistance.
-  
-  1. Create a new repository by clicking ‘Use this template’ button.
-  
-  2. Make sure your newly created repository is private.
-  
-  3. Enable Dependabot alerts in your candidate repo settings under Security & analysis. You need to enable ‘Allow GitHub to perform read-only analysis of this repository’ first.
-</details>
+1.  Install through npm
+```
+npm install @klarna/postgres-to-docs
+```
 
-TODO
-
-## Problem
-
-> You want to get a quick and easy overview of the database setup In your services, for example when having a technical discussion or writing a discovery. You have to start the entire service (pull images, start containers, have to correct config) and open e.g table plus, 
-or check through the migrations to see how they are configured.
-
-It would be beneficial to have an external source of database docs that is easier to open and understand. 
- However, just introducing more manual documentation (or having to screenshot an external application like table plus) introduces another piece to maintain and keep up to date.
-
-## Introducing auto docs!
-
-* Keeping docs up to date automatically. The team doesn’t have to maintain documentation that is separate from postgres/code
-* Only requires the service to run when generating the docs, not when viewing them
-
-
-
-## Extensions
-* CLI / runner - the user facing interface that can be used to run the script
-* Generator script
-* Visualization script
-* Extensions
-* More export types, e.g a png with a entity relationship diagram
-* Performance, currently a log of queries
-* Watch mode to run the script automatically when a directory changes. E.g put watch mode on the migrations directory and re run.
-* Tests
-
-#### How to
-Create an example project that: 
-* Starts a Postgres database
-* Runs migrations/creates tables
-* Runs the auto doc script
-* Saves the result to an md-file
-* Reference the file in a readme
-
-## Usage example
-
-* Configure ***host***, ***port***, ***user***, ***pasword*** and ***database*** in configuration.json
-
+2. Define a `json` config file
 ```
 {
-  "host": "localhost",
-  "port": 5432,
-  "user": "user",
-  "password": "password",
-  "database": "postgres-auto-docs"
-} 
+    "host": "localhost",
+    "port": 5432,
+    "user": "user",
+    "password": "password",
+    "database": "database"
+}
 ```
+3. Run the tool
+```
+postgres-to-docs --config=config.json --output=schema.md
+```
+Where `--config` is the path to your config file and `--output`is the path to the output markdown file
 
-_For more examples and usage, please refer to the [Docs](TODO)._
 
-## Development setup
+## Problem
+You need to get a quick and easy overview of your database schema but don't want to...
+* Open the source code and find the model definitions
+* Start your database and service, install dependencies, have a proper configuration, and open an external tool like TablePlus or DBeaver
+* Read through your migrations directory to find the latest version of your schema
+* Look through external documentation that might be out of date
 
-TODO
 
-```sh
-make install
-npm test
+## Introducing postgres-to-docs!
+A Node CLI that renders your schemas as markdown and keeps it up to date! Generates documentation for
+- [X] Tables - PKs, FKs, Nullable and Default values
+- [X] Views
+- [X] User defined types like composites and enums
+
+## Future work
+- [ ] Additional export formats like entity relationship-diagrams
+- [ ] Materialized views
+- [ ] Support for watch-mode to rerun the tool on file change
+
+
+## Development
+Clone the repo, then:
+
+```
+npm install
+npm run start:dev
 ```
 
 ## How to contribute
