@@ -6,6 +6,7 @@ import {
   CustomType,
   View,
   Repository,
+  CompositeType,
 } from './repository'
 
 export type ColumnDescription = Column & {
@@ -18,10 +19,20 @@ export type TableDescription = {
   columns: ColumnDescription[]
 }
 
+export type CompositeTypeDescription = {
+  name: string
+  fields: {
+    name: string
+    dataType: string
+    isRequired: boolean
+    position: number
+  }[]
+}
+
 export type Schema = {
   tables: TableDescription[]
   customTypes: CustomType[]
-  compositeTypes: CompositeType[]
+  compositeTypes: CompositeTypeDescription[]
   views: TableDescription[]
 }
 
@@ -75,31 +86,21 @@ const withColumns = (
   }
 }
 
-export type CompositeType = {
-  name: string,
-  fields: {
-    name: string,
-    dataType: string,
-    isRequired: boolean,
-    position: number
-  }[]
-}
-
 export const getSchema = async (repository: Repository) => {
   const tables = await repository.selectTables()
   const views = await repository.selectViews()
   const columns = await repository.selectColumns()
   const foreignKeys = await repository.selectForeignKeys()
   const primaryKeys = await repository.selectPrimaryKeys()
-  const customTypes = await (await repository.selectCustomTypes())
+  const customTypes = await repository.selectCustomTypes()
   const compositeTypes = await repository.selectCompositeTypes()
 
   const enrichedTables = tables.map((table) =>
     withColumns(table, columns, foreignKeys, primaryKeys)
   )
 
-  const filteredCustomTypes = customTypes.filter(custom =>
-    custom.elements.filter(elem => elem.length > 0).length > 0
+  const filteredCustomTypes = customTypes.filter(
+    (custom) => custom.elements.filter((elem) => elem.length > 0).length > 0
   )
 
   const enrichedViews = views.map((view) =>
@@ -116,9 +117,9 @@ export const getSchema = async (repository: Repository) => {
   }
 }
 
-const compactComposites = (compositeTypes: any[]) => {
+const compactComposites = (compositeTypes: CompositeType[]) => {
   let map = new Map()
-  compositeTypes.forEach(composite => {
+  compositeTypes.forEach((composite) => {
     let name: String = composite.name
     if (map.has(name)) {
       let elem = map.get(name)
@@ -126,15 +127,20 @@ const compactComposites = (compositeTypes: any[]) => {
         name: composite.columnName,
         dataType: composite.dataType,
         isRequired: composite.isRequired,
-        position: composite.position
+        position: composite.position,
       })
     } else {
-      map.set(name, {name: name, fields: [{
-        name: composite.columnName,
-        dataType: composite.dataType,
-        isRequired: composite.isRequired,
-        position: composite.position
-      }]})
+      map.set(name, {
+        name: name,
+        fields: [
+          {
+            name: composite.columnName,
+            dataType: composite.dataType,
+            isRequired: composite.isRequired,
+            position: composite.position,
+          },
+        ],
+      })
     }
   })
   return [...map.values()]

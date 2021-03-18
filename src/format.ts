@@ -2,7 +2,7 @@ import {
   ColumnDescription,
   Schema,
   TableDescription,
-  CompositeType,
+  CompositeTypeDescription,
 } from './get-schema'
 import { CustomType } from './repository'
 import json2md from 'json2md'
@@ -51,7 +51,7 @@ const generateViewsSection = (
 
 const generateTypesSection = (
   customTypes: CustomType[],
-  compositeTypes: CompositeType[],
+  compositeTypes: CompositeTypeDescription[],
   typeNames: string[]
 ) => {
   if (customTypes.length === 0 && compositeTypes.length === 0) {
@@ -71,7 +71,7 @@ const generateTablesMarkdown = (
 
 const generateTypesMarkdown = (
   customTypes: CustomType[],
-  compositeTypes: CompositeType[],
+  compositeTypes: CompositeTypeDescription[],
   typeNames: string[]
 ) =>
   [
@@ -100,7 +100,7 @@ const generateCustomTypeMarkdown = (
 }
 
 const generateCompositeTypesMarkdown = (
-  compositeTypes: CompositeType[],
+  compositeTypes: CompositeTypeDescription[],
   customTypeNames: string[]
 ) => {
   return compositeTypes
@@ -111,7 +111,7 @@ const generateCompositeTypesMarkdown = (
 }
 
 const generateCompositeTypeMarkdown = (
-  composite: CompositeType,
+  composite: CompositeTypeDescription,
   customTypeNames: string[]
 ) => {
   const headers = ['column name', 'type', 'position', 'required?']
