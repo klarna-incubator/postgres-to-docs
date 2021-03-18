@@ -1,21 +1,10 @@
 #!/usr/bin/env node
 
 import { generateDocumentation } from '.'
-
-const parseArguments = () => {
-  const [_, __, ...args] = process.argv
-  return args
-    .map((arg) => {
-      if (!arg.startsWith('--')) return {}
-      const [flag, value] = arg.split('=')
-      const withoutDashes = flag.slice(2)
-      return { [withoutDashes]: value }
-    })
-    .reduce((acc, next) => ({ ...acc, ...next }), {})
-}
+import { parseArguments } from './arguments'
 
 const run = async () => {
-  const rawArguments = parseArguments()
+  const rawArguments = parseArguments(process.argv)
   if (!rawArguments.config || !rawArguments.output) {
     console.log('failed, "--config" and "--output" required')
     process.exit(1)
