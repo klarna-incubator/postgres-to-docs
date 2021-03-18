@@ -13,7 +13,7 @@ const TYPES = typeDocumentation as any
 export const format = (schema: Schema) => {
   const customTypeNames = schema.customTypes.map((t) => t.name)
   const compositeTypeNames = schema.compositeTypes.map((t) => t.name)
-  const typeNames = customTypeNames.concat(compositeTypeNames)
+  const typeNames = new Set(customTypeNames.concat(compositeTypeNames))
   return json2md(
     [
       generateTableSection(schema.tables, typeNames),
@@ -29,7 +29,7 @@ export const format = (schema: Schema) => {
 
 const generateTableSection = (
   tables: TableDescription[],
-  typeNames: string[]
+  typeNames: Set<string>
 ) => {
   if (tables.length === 0) {
     return []
@@ -40,7 +40,7 @@ const generateTableSection = (
 
 const generateViewsSection = (
   views: TableDescription[],
-  typeNames: string[]
+  typeNames: Set<string>
 ) => {
   if (views.length === 0) {
     return []
@@ -52,7 +52,7 @@ const generateViewsSection = (
 const generateTypesSection = (
   customTypes: CustomType[],
   compositeTypes: CompositeType[],
-  typeNames: string[]
+  typeNames: Set<string>
 ) => {
   if (customTypes.length === 0 && compositeTypes.length === 0) {
     return []
@@ -66,13 +66,13 @@ const generateTypesSection = (
 
 const generateTablesMarkdown = (
   tables: TableDescription[],
-  typeNames: string[]
+  typeNames: Set<string>
 ) => tables.map((t) => generateTableDescription(t, typeNames))
 
 const generateTypesMarkdown = (
   customTypes: CustomType[],
   compositeTypes: CompositeType[],
-  typeNames: string[]
+  typeNames: Set<string>
 ) =>
   [
     generateCustomTypesMarkdown(customTypes, typeNames),
@@ -81,7 +81,7 @@ const generateTypesMarkdown = (
 
 const generateCustomTypesMarkdown = (
   customTypes: CustomType[],
-  customTypeNames: string[]
+  customTypeNames: Set<string>
 ) => {
   return customTypes
     .map((custom) => generateCustomTypeMarkdown(custom, customTypeNames))
@@ -90,7 +90,7 @@ const generateCustomTypesMarkdown = (
 
 const generateCustomTypeMarkdown = (
   custom: CustomType,
-  customTypeNames: string[]
+  customTypeNames: Set<string>
 ) => {
   let nameWithAnchor = '<a name="' + custom.name + '" > </a>' + custom.name
   return [
@@ -101,7 +101,7 @@ const generateCustomTypeMarkdown = (
 
 const generateCompositeTypesMarkdown = (
   compositeTypes: CompositeType[],
-  customTypeNames: string[]
+  customTypeNames: Set<string>
 ) => {
   return compositeTypes
     .map((composite) =>
@@ -112,7 +112,7 @@ const generateCompositeTypesMarkdown = (
 
 const generateCompositeTypeMarkdown = (
   composite: CompositeType,
-  customTypeNames: string[]
+  customTypeNames: Set<string>
 ) => {
   const headers = ['column name', 'type', 'position', 'required?']
   let nameWithAnchor =
@@ -137,8 +137,8 @@ const generateCompositeTypeMarkdown = (
   ]
 }
 
-const maybeCreateTypeLink = (type: string, customTypeNames: string[]) => {
-  if (customTypeNames.includes(type)) return `[${type}](#${type})`
+const maybeCreateTypeLink = (type: string, customTypeNames: Set<string>) => {
+  if (customTypeNames.has(type)) return `[${type}](#${type})`
   const docsUrl = TYPES[type]
   if (docsUrl) return `<a href="${docsUrl}">${type}</a>`
   return type
@@ -146,7 +146,7 @@ const maybeCreateTypeLink = (type: string, customTypeNames: string[]) => {
 
 const generateTableDescription = (
   tableDescription: TableDescription,
-  typeNames: string[]
+  typeNames: Set<string>
 ) => {
   const nameWithAnchor = `<a name="${tableDescription.name}"></a>${tableDescription.name}`
   return [
@@ -157,7 +157,7 @@ const generateTableDescription = (
 
 const generateMarkdownTable = (
   columns: ColumnDescription[],
-  typeNames: string[]
+  typeNames: Set<string>
 ) => {
   const headers = ['Name', 'Type', 'Default', 'Nullable', 'References']
   const rows = columns.map((column) => [
@@ -182,7 +182,7 @@ const formatColumnName = (name: string, isPrimaryKey: boolean) =>
     ? `${name} <span style="background: #ddd; padding: 2px; font-size: 0.75rem; color: black">PK</span>`
     : name
 
-const formatDataType = (type: string, typeNames: string[]) =>
+const formatDataType = (type: string, typeNames: Set<string>) =>
   maybeCreateTypeLink(type, typeNames)
 
 const formatDefault = (def?: string) => def || ''
