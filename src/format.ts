@@ -75,22 +75,20 @@ const generateTypesMarkdown = (
   typeNames: Set<string>
 ) =>
   [
-    generateCustomTypesMarkdown(customTypes, typeNames),
+    generateCustomTypesMarkdown(customTypes),
     generateCompositeTypesMarkdown(compositeTypes, typeNames),
   ].flat()
 
 const generateCustomTypesMarkdown = (
   customTypes: CustomType[],
-  customTypeNames: Set<string>
 ) => {
   return customTypes
-    .map((custom) => generateCustomTypeMarkdown(custom, customTypeNames))
+    .map((custom) => generateCustomTypeMarkdown(custom))
     .flat()
 }
 
 const generateCustomTypeMarkdown = (
-  custom: CustomType,
-  customTypeNames: Set<string>
+  custom: CustomType
 ) => {
   let nameWithAnchor = '<a name="' + custom.name + '" > </a>' + custom.name
   return [
