@@ -137,7 +137,7 @@ const generateCompositeTypeMarkdown = (
 
 const maybeCreateTypeLink = (type: string, customTypeNames: Set<string>) => {
   if (customTypeNames.has(type)) return `[${type}](#${type})`
-  const docsUrl = TYPES[type]
+  const docsUrl = type.match(/character \(\d+\)/) ? TYPES['character'] : TYPES[type]
   if (docsUrl) return `<a href="${docsUrl}">${type}</a>`
   return type
 }
