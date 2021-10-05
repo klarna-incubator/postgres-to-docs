@@ -28,15 +28,28 @@ const columnResultDecoder: Decoder<Column[]> = Decoder.array(
     column_default: Decoder.optional(Decoder.string),
     is_nullable: Decoder.string.map((s) => s === 'YES'),
     data_type: Decoder.string,
-    udt_name: Decoder.string
-  }).map((res) => ({
-    table: res.table_name,
-    name: res.column_name,
-    default: res.column_default,
-    isNullable: res.is_nullable,
-    dataType: res.data_type == 'USER-DEFINED' ? res.udt_name : res.data_type,
-  }))
+    udt_name: Decoder.string,
+    character_maximum_length: Decoder.optional(Decoder.number)
+  }).map((res) => {
+    return {
+      table: res.table_name,
+      name: res.column_name,
+      default: res.column_default,
+      isNullable: res.is_nullable,
+      dataType: get_datatype(res)
+    }
+  })
 )
+
+const get_datatype = (res: {udt_name: string, data_type: string, character_maximum_length: number | undefined}) => {
+  if (res.data_type == 'USER-DEFINED') {
+    return res.udt_name
+  }
+  if (res.data_type == 'character' && res.character_maximum_length) {
+    return `character (${res.character_maximum_length})`
+  }
+  return res.data_type
+}
 
 export type View = {
   name: string
