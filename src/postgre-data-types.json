@@ -10,7 +10,7 @@
   "serial": "https://www.postgresql.org/docs/9.5/datatype-numeric.html",
   "bigserial": "https://www.postgresql.org/docs/9.5/datatype-numeric.html",
   "money": "https://www.postgresql.org/docs/9.5/datatype-money.html",
-  "charachter": "https://www.postgresql.org/docs/9.5/datatype-character.html",
+  "character": "https://www.postgresql.org/docs/9.5/datatype-character.html",
   "char": "https://www.postgresql.org/docs/9.5/datatype-character.html",
   "varchar": "https://www.postgresql.org/docs/9.5/datatype-character.html",
   "varyingchar": "https://www.postgresql.org/docs/9.5/datatype-character.html",
