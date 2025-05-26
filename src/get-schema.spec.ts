@@ -17,6 +17,8 @@ const emptyRepository = {
   selectPrimaryKeys: jest.fn().mockResolvedValue([]),
   selectCustomTypes: jest.fn().mockResolvedValue([]),
   selectCompositeTypes: jest.fn().mockResolvedValue([]),
+  selectRLSPolicies: jest.fn().mockResolvedValue([]),
+  selectFunctions: jest.fn().mockResolvedValue([])
 }
 
 describe('Get schema', () => {

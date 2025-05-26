@@ -3,13 +3,16 @@ import { Decoder } from 'elm-decoders'
 
 export type Table = {
   name: string
+  comment?: string
 }
 
 const tableResultDecoder: Decoder<Table[]> = Decoder.array(
   Decoder.object({
     tablename: Decoder.string,
+    description: Decoder.optional(Decoder.string)
   }).map((res) => ({
     name: res.tablename,
+    comment: res.description
   }))
 )
 
@@ -19,6 +22,7 @@ export type Column = {
   default?: string
   isNullable: boolean
   dataType: string
+  comment?: string
 }
 
 const columnResultDecoder: Decoder<Column[]> = Decoder.array(
@@ -29,19 +33,21 @@ const columnResultDecoder: Decoder<Column[]> = Decoder.array(
     is_nullable: Decoder.string.map((s) => s === 'YES'),
     data_type: Decoder.string,
     udt_name: Decoder.string,
-    character_maximum_length: Decoder.optional(Decoder.number)
+    character_maximum_length: Decoder.optional(Decoder.number),
+    column_comment: Decoder.optional(Decoder.string)
   }).map((res) => {
     return {
       table: res.table_name,
       name: res.column_name,
       default: res.column_default,
       isNullable: res.is_nullable,
-      dataType: get_datatype(res)
+      dataType: get_datatype(res),
+      comment: res.column_comment
     }
   })
 )
 
-const get_datatype = (res: {udt_name: string, data_type: string, character_maximum_length: number | undefined}) => {
+const get_datatype = (res: { udt_name: string, data_type: string, character_maximum_length: number | undefined }) => {
   if (res.data_type == 'USER-DEFINED') {
     return res.udt_name
   }
@@ -53,13 +59,16 @@ const get_datatype = (res: {udt_name: string, data_type: string, character_maxim
 
 export type View = {
   name: string
+  comment?: string
 }
 
 const viewResultDecoder: Decoder<View[]> = Decoder.array(
   Decoder.object({
     table_name: Decoder.string,
+    description: Decoder.optional(Decoder.string)
   }).map((res) => ({
     name: res.table_name,
+    comment: res.description
   }))
 )
 
@@ -147,24 +156,157 @@ const compositeTypeResultDecoder: Decoder<CompositeType[]> = Decoder.array(
   }))
 )
 
-export const createRepository = (query: Database['query']) => {
+export type RLSPolicy = {
+  table: string
+  name: string
+  definition: string
+  command: string
+  roles: string[]
+  using: string
+  withCheck: string
+}
+
+const rlsPolicyDecoder: Decoder<RLSPolicy[]> = Decoder.array(
+  Decoder.object({
+    table_name: Decoder.string,
+    policy_name: Decoder.string,
+    policy_definition: Decoder.string,
+    command: Decoder.string,
+    roles: Decoder.string.map(s => s.split(',')),
+    using: Decoder.optional(Decoder.string),
+    with_check: Decoder.optional(Decoder.string)
+  }).map(res => ({
+    table: res.table_name,
+    name: res.policy_name,
+    definition: res.policy_definition,
+    command: res.command,
+    roles: res.roles,
+    using: res.using || '',
+    withCheck: res.with_check || ''
+  }))
+)
+
+export type DatabaseFunction = {
+  name: string
+  returnType: string
+  arguments: string
+  definition: string
+  language: string
+  volatility: string
+}
+
+const functionResultDecoder: Decoder<DatabaseFunction[]> = Decoder.array(
+  Decoder.object({
+    routine_name: Decoder.string,
+    data_type: Decoder.string,
+    arguments: Decoder.string,
+    definition: Decoder.string,
+    language: Decoder.string,
+    volatility: Decoder.string
+  }).map((res) => ({
+    name: res.routine_name,
+    returnType: res.data_type,
+    arguments: res.arguments,
+    definition: res.definition,
+    language: res.language,
+    volatility: res.volatility
+  }))
+)
+
+export const createRepository = (
+  query: Database['query'],
+  schema?: string,
+  includeTables?: string[],
+  excludeTables?: string[]
+) => {
+  const schemaFilter = schema ? `AND schemaname = '${schema}'` : ''
+
+  const createTableFilter = () => {
+    if (includeTables && includeTables.length > 0) {
+      return `AND (${includeTables.map(pattern => `tablename ~ '${pattern}'`).join(' OR ')})`
+    }
+    if (excludeTables && excludeTables.length > 0) {
+      return `AND NOT (${excludeTables.map(pattern => `tablename ~ '${pattern}'`).join(' OR ')})`
+    }
+    return ''
+  }
+
+  const tableFilter = createTableFilter()
+
   const selectTables = async () => {
-    const queryString = `SELECT * FROM pg_catalog.pg_tables WHERE tablename NOT LIKE 'sql_%' AND tablename NOT LIKE 'pg_%'`
+    const queryString = `
+      SELECT 
+        t.tablename,
+        pg_catalog.obj_description(c.oid, 'pg_class') as description
+      FROM pg_catalog.pg_tables t
+      JOIN pg_catalog.pg_class c ON c.relname = t.tablename
+      WHERE tablename NOT LIKE 'sql_%' 
+        AND tablename NOT LIKE 'pg_%' 
+        ${schemaFilter}
+        ${tableFilter}
+    `
     const result = await query(queryString)
     const decoded = tableResultDecoder.guard(result.rows)
     return decoded
   }
+
   const selectColumns = async () => {
-    const queryString = `SELECT * FROM information_schema."columns" ORDER BY ordinal_position`
-    const result = await query(queryString)
+    const queryString = `
+      SELECT 
+        c.table_name,
+        c.column_name,
+        c.column_default,
+        c.is_nullable,
+        c.data_type,
+        c.udt_name,
+        c.character_maximum_length,
+        pgd.description as column_comment
+      FROM information_schema.columns c
+      LEFT JOIN pg_catalog.pg_statio_all_tables st ON (c.table_schema = st.schemaname AND c.table_name = st.relname)
+      LEFT JOIN pg_catalog.pg_description pgd ON (pgd.objoid = st.relid AND pgd.objsubid = c.ordinal_position)
+      WHERE c.table_schema = $1
+        ${tableFilter ? `AND (${tableFilter.replace(/tablename/g, 'c.table_name').slice(4)})` : ''}
+      ORDER BY c.ordinal_position
+    `
+    const result = await query(queryString, [schema || 'public'])
     const decoded = columnResultDecoder.guard(result.rows)
     return decoded
   }
 
   const selectViews = async () => {
-    const queryString = `SELECT table_name FROM INFORMATION_SCHEMA.views WHERE table_schema = ANY (current_schemas(false))`
+    const queryString = `
+      SELECT 
+        v.table_name,
+        pg_catalog.obj_description(c.oid, 'pg_class') as description
+      FROM INFORMATION_SCHEMA.views v
+      JOIN pg_catalog.pg_class c ON c.relname = v.table_name
+      WHERE v.table_schema = ANY (current_schemas(false)) 
+        ${schemaFilter ? schemaFilter.replace('schemaname', 'v.table_schema') : ''}
+        ${tableFilter ? tableFilter.replace('tablename', 'v.table_name') : ''}
+    `
     const result = await query(queryString)
     const decoded = viewResultDecoder.guard(result.rows)
+    return decoded
+  }
+
+  const selectRLSPolicies = async () => {
+    const queryString = `
+      SELECT
+        schemaname,
+        tablename AS table_name,
+        policyname AS policy_name,
+        format('%I ON %I.%I TO %s', policyname, schemaname, tablename, roles) AS policy_definition,
+        cmd AS command,
+        roles::text,
+        qual AS using,
+        with_check
+      FROM
+        pg_policies
+      WHERE
+        schemaname = $1
+    `
+    const result = await query(queryString, [schema || 'public'])
+    const decoded = rlsPolicyDecoder.guard(result.rows)
     return decoded
   }
 
@@ -306,6 +448,31 @@ export const createRepository = (query: Database['query']) => {
     return decoded
   }
 
+  const selectFunctions = async () => {
+    const queryString = `
+      SELECT 
+        p.proname AS routine_name,
+        pg_get_function_result(p.oid) AS data_type,
+        pg_get_function_arguments(p.oid) AS arguments,
+        pg_get_functiondef(p.oid) AS definition,
+        l.lanname AS language,
+        CASE p.provolatile
+          WHEN 'i' THEN 'IMMUTABLE'
+          WHEN 's' THEN 'STABLE'
+          WHEN 'v' THEN 'VOLATILE'
+        END AS volatility
+      FROM pg_proc p
+      LEFT JOIN pg_namespace n ON p.pronamespace = n.oid
+      LEFT JOIN pg_language l ON p.prolang = l.oid
+      WHERE n.nspname = $1
+        AND p.prokind = 'f'
+      ORDER BY p.proname;
+    `
+    const result = await query(queryString, [schema || 'public'])
+    const decoded = functionResultDecoder.guard(result.rows)
+    return decoded
+  }
+
   return {
     selectTables,
     selectColumns,
@@ -314,6 +481,8 @@ export const createRepository = (query: Database['query']) => {
     selectPrimaryKeys,
     selectCustomTypes,
     selectCompositeTypes,
+    selectRLSPolicies,
+    selectFunctions
   }
 }
 

@@ -8,6 +8,8 @@ describe('database', () => {
     user: 'postgres-to-docs',
     password: 'postgres-to-docs',
     database: 'postgres-to-docs',
+    includeTypes: true,
+    pureMarkdown: false
   }
 
   let database: Database

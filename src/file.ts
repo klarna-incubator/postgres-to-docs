@@ -1,23 +1,22 @@
 import fs from 'fs'
+import { promisify } from 'util'
+import * as path from 'path'
 
-export const read = (path: string) =>
-  new Promise((resolve, reject) => {
-    fs.readFile(path, (err, res) => {
-      if (err) {
-        reject(err)
-        return
-      }
-      resolve(JSON.parse(res.toString()))
-    })
-  })
+const readFileAsync = promisify(fs.readFile)
+const writeFileAsync = promisify(fs.writeFile)
+const mkdirAsync = promisify(fs.mkdir)
 
-export const write = (path: string, content: string) =>
-  new Promise((resolve, reject) => {
-    fs.writeFile(path, content, (err) => {
-      if (err) {
-        reject(err)
-        return
-      }
-      resolve(null)
-    })
-  })
+export const read = async (path: string) => {
+  const content = await readFileAsync(path, 'utf8')
+  return JSON.parse(content)
+}
+
+export const write = (path: string, content: string) => writeFileAsync(path, content)
+
+export const ensureDirectoryExists = async (dirPath: string) => {
+  try {
+    await mkdirAsync(dirPath, { recursive: true })
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err
+  }
+}
